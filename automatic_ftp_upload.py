@@ -1,10 +1,11 @@
 #Automatic FTP Upload
 import os
+import time, threading
 import tkinter
 from tkinter import *
-from PIL import ImageTk, Image
 from tkinter import filedialog
 from ftplib import FTP
+#from PIL import ImageTk, Image
 
 class upload:
     def __init__(self):
@@ -17,6 +18,11 @@ class upload:
 
         #GLOBAL VARIABLES
         self.__ftp = FTP()
+        self.start = False
+        self.file = ""
+        
+        #testing purposes
+        
 
         #frame layout
         self.logo_frame = Frame(self.main_window)
@@ -28,6 +34,7 @@ class upload:
         self.remo_frame = Frame(self.main_window)
         self.locl_frame = Frame(self.main_window)
         self.misc_frame = Frame(self.main_window)
+        self.exec_frame = Frame(self.main_window)
 
         #logo_frame widgets
         #self.logo_image = Label(self.logo_frame, image = self.img)
@@ -85,6 +92,7 @@ class upload:
         self.remo_label = Label(self.remo_frame, text="Remote Path:")
         self.remo_entry = Entry(self.remo_frame, width=30)
         self.remo_btn = Button(self.remo_frame, text="Set Path")
+        self.remo_btn.config(state='disabled')
         self.remo_label.pack(side='left')
         self.remo_entry.pack(side='left')
         self.remo_btn.pack(side='left')
@@ -93,6 +101,7 @@ class upload:
         #locl_frame widgets
         self.locl_label = Label(self.locl_frame, text="Local Path")
         self.path = StringVar()
+        
         self.locl_entry = Entry(self.locl_frame, textvariable = self.path, width=30)
         self.locl_btn = Button(self.locl_frame, text="Get Path", command=self.get_local_path)
         self.locl_label.pack(side='left')
@@ -109,20 +118,35 @@ class upload:
         self.pwd_label.pack(side='left')
         self.misc_frame.pack()
 
+        #exec_frame widgets
+        self.exec_label = Label(self.exec_frame, text="Upload:")
+        self.exec_start_btn = Button(self.exec_frame, text="Start", command=self.upload)
+        self.exec_stop_btn = Button(self.exec_frame, text="Stop")
+        self.exec_label.pack(side='left')
+        self.exec_start_btn.pack(side='left')
+        self.exec_stop_btn.pack(side='left')
+        self.exec_frame.pack()
+
         tkinter.mainloop()
 
-        ##BUTTON METHODS
+    ##BUTTON METHODS
     def get_local_path(self):
         self.file_path = tkinter.filedialog.askopenfilename()
+        self.file = self.file_path
         self.path.set(self.file_path)
 
     def connect(self):
         ftp = FTP(host=self.host.get(), user=self.user.get(), passwd=self.password.get())
         self.__ftp = ftp
+        
         if len(self.remo_entry.get()) > 0:
             self.__ftp.cwd(self.remo_entry.get())
             self.remo_btn.config(state='disabled')
-        self.pwd.set(self.__ftp.pwd())
+            self.pwd.set(self.__ftp.pwd())
+        else:
+            self.remo_btn.config(state='active')
+            self.need_remote_path()
+            
         if len(self.__ftp.getwelcome()) > 0:
             self.status.set("OK")
             self.conn_btn.config(state='disabled')
@@ -136,9 +160,20 @@ class upload:
         self.disc_btn.config(state='disabled')
         self.status.set("DISC")
 
-    #def start_upload(self):
-       
 
+    #def start_upload(self):
+
+
+            
+        
+
+    def need_remote_path(self):
+        messagebox.showwarning("Notice","Please enter a remote path and click set path")
+       
+    def upload(self):
+        myfile = open(self.file, 'rb')
+        self.__ftp.storbinary("STOR test.txt" , myfile)
+        myfile.close
 
 
         
