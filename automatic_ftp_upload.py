@@ -18,8 +18,9 @@ class upload:
 
         #GLOBAL VARIABLES
         self.__ftp = FTP()
-        self.start = False
+        self.run = False
         self.file = ""
+        self.count = 0
         
         #testing purposes
         
@@ -34,7 +35,9 @@ class upload:
         self.remo_frame = Frame(self.main_window)
         self.locl_frame = Frame(self.main_window)
         self.misc_frame = Frame(self.main_window)
+        self.cont_frame = Frame(self.main_window)
         self.exec_frame = Frame(self.main_window)
+        
 
         #logo_frame widgets
         #self.logo_image = Label(self.logo_frame, image = self.img)
@@ -110,7 +113,7 @@ class upload:
         self.locl_frame.pack()
 
         #misc_frame widgets
-        #use for testing purposes
+        #working directory text
         self.misc_label = Label(self.misc_frame, text="Working DIR")
         self.pwd = StringVar()
         self.pwd_label = Label(self.misc_frame, textvariable=self.pwd)
@@ -118,9 +121,17 @@ class upload:
         self.pwd_label.pack(side='left')
         self.misc_frame.pack()
 
+        #cont_frame widgets
+        #upload counter
+        self.cont_label = Label(self.cont_frame, text="Uploaded: ")
+        self.cnt_label = Label(self.cont_frame, text=self.count)
+        self.cont_label.pack(side='left')
+        self.cnt_label.pack(side='left')
+        self.cont_frame.pack()
+
         #exec_frame widgets
         self.exec_label = Label(self.exec_frame, text="Upload:")
-        self.exec_start_btn = Button(self.exec_frame, text="Start", command=self.upload)
+        self.exec_start_btn = Button(self.exec_frame, text="Start", command=self.start)
         self.exec_stop_btn = Button(self.exec_frame, text="Stop")
         self.exec_label.pack(side='left')
         self.exec_start_btn.pack(side='left')
@@ -161,23 +172,28 @@ class upload:
         self.status.set("DISC")
 
 
-    #def start_upload(self):
+    def start(self):
+        self.run = True
+        self.upload()
 
-
-            
-        
+    def stop(self):
+        self.run = False
+      
 
     def need_remote_path(self):
         messagebox.showwarning("Notice","Please enter a remote path and click set path")
        
     def upload(self):
-        myfile = open(self.file, 'rb')
-        self.__ftp.storbinary("STOR test.txt" , myfile)
-        myfile.close
-
-
+        if self.run:
+            myfile = open(self.file, 'rb')
+            self.__ftp.storbinary("STOR test.txt" , myfile)
+            self.count += 1
+            myfile.close
+            self.main_window.after(30000, self.upload)
+        else:
+            self.main_window.mainloop()
         
-        
+      
 
     
 
