@@ -20,7 +20,8 @@ class upload:
         self.__ftp = FTP()
         self.run = False
         self.file = ""
-        self.count = 0
+        self.count = IntVar()
+        self.fname = ""
         
         #testing purposes
         
@@ -37,6 +38,7 @@ class upload:
         self.misc_frame = Frame(self.main_window)
         self.cont_frame = Frame(self.main_window)
         self.exec_frame = Frame(self.main_window)
+        self.fname_frame = Frame(self.main_window)
         
 
         #logo_frame widgets
@@ -62,13 +64,13 @@ class upload:
         #host_frame widgets
         #includes a port entry and label
         self.host_label = Label(self.host_frame, text="Host:")
-        self.port_label = Label(self.host_frame, text="Port:")
+        #self.port_label = Label(self.host_frame, text="Port:")
         self.host = Entry(self.host_frame, width=25)
-        self.port = Entry(self.host_frame, width=10)
+        #self.port = Entry(self.host_frame, width=10)
         self.host_label.pack(side='left')
         self.host.pack(side='left')
-        self.port_label.pack(side='left')
-        self.port.pack(side='left')
+        #self.port_label.pack(side='left')
+        #self.port.pack(side='left')
         self.host_frame.pack()
 
         #conn_frame widgets
@@ -112,6 +114,15 @@ class upload:
         self.locl_btn.pack(side='left')
         self.locl_frame.pack()
 
+        #fname_frame widgets
+        self.fname_label = Label(self.fname_frame, text="File Name:")
+        self.fname_entry = Entry(self.fname_frame, width=30)
+        self.fname_btn = Button(self.fname_frame, text="Set File Name", command=self.set_fname)
+        self.fname_label.pack(side='left')
+        self.fname_entry.pack(side='left')
+        self.fname_btn.pack(side='left')
+        self.fname_frame.pack()
+
         #misc_frame widgets
         #working directory text
         self.misc_label = Label(self.misc_frame, text="Working DIR")
@@ -149,6 +160,7 @@ class upload:
     def connect(self):
         ftp = FTP(host=self.host.get(), user=self.user.get(), passwd=self.password.get())
         self.__ftp = ftp
+        count = 0
         
         if len(self.remo_entry.get()) > 0:
             self.__ftp.cwd(self.remo_entry.get())
@@ -164,6 +176,9 @@ class upload:
             self.disc_btn.config(state='active')
         else:
             self.status.set("FAILED")
+
+        self.fname = self.fname_entry.get()
+        self.count.set(count)
         
     def disconnect(self):
         self.__ftp.quit()
@@ -177,19 +192,24 @@ class upload:
         self.upload()
 
     def stop(self):
-        self.run = False
-      
+        self.main_window.after_close(self._job)
 
+    def set_fname(self):
+        self.fname = self.fname_entry.get()
+      
     def need_remote_path(self):
         messagebox.showwarning("Notice","Please enter a remote path and click set path")
        
     def upload(self):
         if self.run:
             myfile = open(self.file, 'rb')
-            self.__ftp.storbinary("STOR test.txt" , myfile)
-            self.count += 1
+            self.__ftp.storbinary("STOR " + self.fname , myfile)
+            count = 1
+            self.count.set(count)
             myfile.close
-            self.main_window.after(30000, self.upload)
+            self._job = self.main_window.after(30000, self.upload)
+            
+            self.main_window.mainloop()
         else:
             self.main_window.mainloop()
         
